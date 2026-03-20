@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=Syne:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design tokens GOLDEN ─────────────────────────────── */
+:root {
+  --gold:         #C9A84C;
+  --gold-light:   #E8C97A;
+  --gold-pale:    #F5E9C8;
+  --dark:         #0A0A0A;
+  --dark-2:       #111111;
+  --dark-3:       #1A1A1A;
+  --dark-4:       #222222;
+  --text:         #F0EDE6;
+  --text-muted:   #8A8070;
+  --text-dim:     #3A3530;
+  --border:       rgba(201,168,76,0.15);
+  --border-bright:rgba(201,168,76,0.35);
+  --sidebar-w:    240px;
+}
+
+/* ── Reset ────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--dark);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+}
+
+/* ── Cursor personnalisé ──────────────────────────────── */
+body { cursor: none; }
+a, button, [role="button"], [onclick] { cursor: none; }
+
+/* ── Scrollbar ────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: var(--dark-2); }
+::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+
+/* ── Animations utilitaires ──────────────────────────── */
+@keyframes rotate   { to { transform: rotate(360deg); } }
+@keyframes fadeUp   { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeLeft { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:translateX(0); } }
+@keyframes connAnim {
+  0%   { left: 0;              opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { left: calc(100% - 8px); opacity: 0; }
+}
+
+/* ── Classes utilitaires GOLDEN ─────────────────────── */
+@layer components {
+
+  /* Boutons */
+  .btn-primary {
+    @apply inline-block px-10 py-4 text-dark text-xs tracking-widest uppercase font-medium
+           transition-all duration-300 border-none relative overflow-hidden;
+    background: var(--gold);
+  }
+  .btn-primary::after {
+    content: '';
+    @apply absolute inset-0 transition-transform duration-300;
+    background: rgba(255,255,255,0.15);
+    transform: translateX(-100%);
+  }
+  .btn-primary:hover::after { transform: translateX(0); }
+
+  .btn-outline {
+    @apply inline-block px-10 py-4 text-golden-text text-xs tracking-widest uppercase
+           transition-all duration-300;
+    background: transparent;
+    border: 1px solid var(--border-bright);
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  .btn-gold-sm {
+    @apply px-6 py-2 text-xs tracking-widest uppercase font-medium transition-all duration-300;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+  }
+  .btn-gold-sm:hover { background: var(--gold); color: var(--dark); }
+
+  /* Section label */
+  .section-label {
+    @apply inline-flex items-center gap-3 mb-5;
+  }
+  .section-label-line {
+    @apply w-8 h-px;
+    background: var(--gold);
+  }
+  .section-label-text {
+    @apply text-xs tracking-widest uppercase;
+    color: var(--gold);
+  }
+
+  /* Section title */
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    @apply text-4xl font-light leading-tight mb-5;
+  }
+  .section-title em { font-style: italic; color: var(--gold-light); }
+
+  /* KPI card */
+  .kpi-card {
+    @apply p-6 border transition-all duration-300;
+    background: var(--dark-3);
+    border-color: var(--border);
+  }
+  .kpi-card:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+
+  /* Reveal animation */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Dashboard sidebar */
+  .sidebar {
+    @apply fixed left-0 top-0 h-full flex flex-col;
+    width: var(--sidebar-w);
+    background: var(--dark-2);
+    border-right: 1px solid var(--border);
+    z-index: 50;
+  }
+
+  .nav-item {
+    @apply flex items-center gap-3 px-5 py-3 text-sm transition-all duration-200;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+  .nav-item:hover, .nav-item.active {
+    color: var(--text);
+    background: rgba(201,168,76,0.06);
+  }
+  .nav-item.active { border-left: 2px solid var(--gold); }
+
+  /* Badge */
+  .badge {
+    @apply text-xs px-2 py-0.5 rounded-sm;
+    background: rgba(201,168,76,0.15);
+    color: var(--gold);
+  }
+}

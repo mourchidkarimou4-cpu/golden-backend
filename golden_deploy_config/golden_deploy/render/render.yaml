@@ -1,0 +1,103 @@
+# ─── GOLDEN Investissement — Render Config ────────────────
+# Fichier : render.yaml
+# Placer à la racine du projet Django (golden_project/)
+# Render détecte ce fichier automatiquement au déploiement.
+
+services:
+
+  # ── Service principal : Django API ──────────────────────
+  - type: web
+    name: golden-api
+    runtime: python
+    region: frankfurt          # Europe — le plus proche de Cotonou
+    plan: free
+
+    # Commandes
+    buildCommand: |
+      pip install -r requirements/prod.txt
+      python manage.py collectstatic --noinput --settings=config.settings.prod
+      python manage.py migrate --settings=config.settings.prod
+    startCommand: >
+      gunicorn config.wsgi:application
+      --bind 0.0.0.0:$PORT
+      --workers 2
+      --timeout 120
+      --access-logfile -
+      --error-logfile -
+
+    # Variables d'environnement (valeurs à remplir dans le dashboard Render)
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: SECRET_KEY
+        generateValue: true          # Render génère une clé aléatoire auto
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: golden-api.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: golden-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false                  # À renseigner manuellement (Upstash)
+      - key: CELERY_BROKER_URL
+        sync: false                  # Idem
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://golden-invest.netlify.app
+      - key: FRONTEND_URL
+        value: https://golden-invest.netlify.app
+      - key: USE_S3
+        value: "True"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false                  # Clé Supabase Storage
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_STORAGE_BUCKET_NAME
+        value: golden-files
+      - key: AWS_S3_ENDPOINT_URL
+        sync: false                  # URL Supabase Storage S3-compatible
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        value: noreply@golden-invest.netlify.app
+
+  # ── Service Celery Worker ────────────────────────────────
+  - type: worker
+    name: golden-celery
+    runtime: python
+    region: frankfurt
+    plan: free
+    buildCommand: pip install -r requirements/prod.txt
+    startCommand: >
+      celery -A config worker
+      -l info
+      -Q default,matching,notifications
+      --concurrency 2
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: golden-db
+          property: connectionString
+      - key: REDIS_URL
+        sync: false
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: SECRET_KEY
+        fromService:
+          name: golden-api
+          type: web
+          property: SECRET_KEY
+
+# ─── Base de données PostgreSQL ───────────────────────────
+# ATTENTION : Render PostgreSQL gratuit expire après 90 jours.
+# Utiliser Supabase à la place (voir env/.env.supabase)
+# Laisser ici pour référence seulement.
+#
+# databases:
+#   - name: golden-db
+#     databaseName: golden_db
+#     user: golden_user
+#     plan: free
