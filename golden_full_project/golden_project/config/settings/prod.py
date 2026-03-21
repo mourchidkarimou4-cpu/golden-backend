@@ -13,7 +13,7 @@ SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
-# Logging en production
+# Logging en production (console uniquement pour Render)
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -24,15 +24,14 @@ LOGGING = {
         },
     },
     'handlers': {
-        'file': {
+        'console': {
             'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': BASE_DIR / 'logs/error.log',  # noqa
+            'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
     },
     'root': {
-        'handlers': ['file'],
+        'handlers': ['console'],
         'level': 'WARNING',
     },
 }
