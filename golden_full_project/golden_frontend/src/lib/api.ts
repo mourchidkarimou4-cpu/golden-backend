@@ -1,7 +1,7 @@
 // src/lib/api.ts
 import axios, { AxiosError } from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+const API_URL = import.meta.env["VITE_API_URL"] as string || 'http://localhost:8000/api/v1'
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -85,7 +85,9 @@ export const projectsAPI = {
   patch:     (id: string, data: Partial<ProjectData>) => api.patch(`/projects/${id}/`, data),
   delete:    (id: string)              => api.delete(`/projects/${id}/`),
   submit:    (id: string)              => api.post(`/projects/${id}/submit/`),
-  toggleFav: (id: string)              => api.post(`/projects/${id}/favorite/`),
+  toggleFav:        (id: string)              => api.post(`/projects/${id}/favorite/`),
+  createShareToken: (id: string)              => api.post(`/projects/${id}/share/`),
+  getByShareToken:  (token: string)           => api.get(`/projects/share/${token}/`),
   addDoc:    (id: string, form: FormData) => api.post(`/projects/${id}/documents/`, form, {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
@@ -105,7 +107,10 @@ export const messagingAPI = {
 
 export const investmentsAPI = {
   list:      ()                         => api.get('/investments/'),
-  portfolio: ()                         => api.get('/investments/portfolio/'),
+  portfolio:  ()                                              => api.get('/investments/portfolio/'),
+  rate:       (id: string, data: {score: number, comment?: string}) => api.post(`/investments/${id}/rate/`, data),
+  myRatings:  ()                                              => api.get('/investments/my-ratings/'),
+  history:    (id: string)                                    => api.get(`/investments/${id}/history/`),
   create:    (data: InvestmentData)     => api.post('/investments/', data),
   detail:    (id: string)               => api.get(`/investments/${id}/`),
   update:    (id: string, data: object) => api.patch(`/investments/${id}/`, data),

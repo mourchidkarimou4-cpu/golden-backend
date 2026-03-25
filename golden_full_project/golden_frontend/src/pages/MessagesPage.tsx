@@ -1,11 +1,13 @@
 // src/pages/MessagesPage.tsx
 import { useState } from 'react'
+import { useIsMobile } from '@/hooks/useBreakpoint'
 import { useThreads, useMessages } from '@/hooks/useMessages'
 import { useAuth } from '@/lib/auth'
 import { GoldenSpinner } from '@/components/ui'
 
 export default function MessagesPage() {
-  const { user }                          = useAuth()
+  const { user } = useAuth()
+  const isMobile = useIsMobile()
   const { threads, loading: tLoading }    = useThreads()
   const [activeThread, setActiveThread]   = useState<string | null>(null)
   const { messages, loading: mLoading, sending, sendMessage, bottomRef } = useMessages(activeThread)
@@ -21,14 +23,21 @@ export default function MessagesPage() {
 
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: '320px 1fr',
+      display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '320px 1fr',
       height: 'calc(100vh - 64px)',
       border: '1px solid var(--border)',
     }}>
 
       {/* ── Liste des threads ────────────────────── */}
       <div style={{ borderRight: '1px solid var(--border)', overflowY: 'auto' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 12 }}>
+          {isMobile && activeThread && (
+            <button onClick={() => setActiveThread(null)} style={{
+              background: 'none', border: 'none', color: 'var(--gold)',
+              fontSize: 18, cursor: 'pointer', padding: '0 4px',
+              flexShrink: 0,
+            }}>←</button>
+          )}
           <span style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
             Messages
           </span>

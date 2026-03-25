@@ -1,4 +1,7 @@
 // src/components/ui/index.tsx
+export { KpiCard } from './KpiCard'
+export { Slideshow } from './Slideshow'
+export { ThemeToggle } from './ThemeToggle'
 // Composants UI réutilisables GOLDEN
 
 import { useEffect, useRef, ReactNode } from 'react'
@@ -33,6 +36,7 @@ export function GoldenCursor() {
     return () => { document.removeEventListener('mousemove', onMove); cancelAnimationFrame(raf) }
   }, [])
 
+  if (typeof window !== 'undefined' && window.innerWidth < 1024) return null
   return (
     <>
       <div ref={dot}  className="cursor-dot"  style={{
@@ -91,47 +95,6 @@ export function SectionLabel({ children }: { children: ReactNode }) {
     <div className="section-label">
       <div className="section-label-line" />
       <span className="section-label-text">{children}</span>
-    </div>
-  )
-}
-
-// ── KPI Card ──────────────────────────────────────────────
-interface KpiCardProps {
-  label:    string
-  value:    string | number
-  sub?:     string
-  trend?:   string
-  trendUp?: boolean
-  icon?:    string
-}
-
-export function KpiCard({ label, value, sub, trend, trendUp, icon }: KpiCardProps) {
-  return (
-    <div className="kpi-card">
-      <div className="flex items-start justify-between mb-3">
-        <span style={{ fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-          {label}
-        </span>
-        {icon && (
-          <div style={{
-            width: 28, height: 28,
-            border: '1px solid var(--border)',
-            display: 'grid', placeItems: 'center',
-            fontSize: 13, color: 'var(--gold)',
-          }}>{icon}</div>
-        )}
-      </div>
-      <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 36, fontWeight: 300, lineHeight: 1, color: 'var(--gold-light)' }}>
-        {value}
-      </div>
-      {trend && (
-        <span style={{ fontSize: 11, color: trendUp ? '#4ade80' : 'var(--text-muted)', marginTop: 6, display: 'block' }}>
-          {trend}
-        </span>
-      )}
-      {sub && (
-        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>{sub}</div>
-      )}
     </div>
   )
 }
@@ -237,3 +200,8 @@ export function ProgressBar({ value, max = 100 }: { value: number; max?: number 
 export function cn(...args: (string | undefined | null | false)[]) {
   return clsx(args)
 }
+export { EmptyState } from './EmptyState'
+export { SkeletonKpiGrid, SkeletonTable } from './Skeleton'
+export { RatingWidget, RatingSummary } from './RatingWidget'
+export { NegotiationFlow } from './NegotiationFlow'
+export { ProjectCard } from './ProjectCard'

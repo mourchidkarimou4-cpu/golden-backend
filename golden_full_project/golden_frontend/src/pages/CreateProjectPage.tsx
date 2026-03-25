@@ -1,6 +1,8 @@
 // src/pages/CreateProjectPage.tsx
 import { useState } from 'react'
+import { Check, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useIsMobile } from '@/hooks/useBreakpoint'
 import { projectsAPI } from '@/lib/api'
 import { GoldenLogo, SectionLabel, ProgressBar } from '@/components/ui'
 
@@ -25,6 +27,7 @@ const STEPS = ['Informations générales', 'Finances', 'Récapitulatif']
 
 export default function CreateProjectPage() {
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
   const [step,    setStep]    = useState(0)
   const [loading, setLoading] = useState(false)
   const [error,   setError]   = useState('')
@@ -62,7 +65,7 @@ export default function CreateProjectPage() {
       })
       navigate('/porteur')
     } catch (err: any) {
-      setError(err.response?.data?.detail ?? 'Erreur lors de la création.')
+      const d = err.response?.data; setError(typeof d?.detail === 'string' ? d.detail : d?.error ?? JSON.stringify(d) ?? 'Erreur lors de la création.')
     } finally {
       setLoading(false)
     }
@@ -102,7 +105,7 @@ export default function CreateProjectPage() {
                   fontSize: 11, color: i < step ? 'var(--dark)' : i === step ? 'var(--gold)' : 'var(--text-muted)',
                   fontWeight: 500,
                 }}>
-                  {i < step ? '✓' : i + 1}
+                  {i < step ? <Check size={12} strokeWidth={2} /> : i + 1}
                 </div>
                 <span style={{ fontSize: 12, color: i === step ? 'var(--text)' : 'var(--text-muted)' }}>{s}</span>
               </div>
@@ -142,7 +145,7 @@ export default function CreateProjectPage() {
                 onBlur={e  => (e.target.style.borderColor = 'var(--border)')} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div>
                 <label style={labelStyle}>Secteur *</label>
                 <select value={form.sector} onChange={set('sector')} style={{ ...inputStyle }}>
@@ -159,7 +162,7 @@ export default function CreateProjectPage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div>
                 <label style={labelStyle}>Pays *</label>
                 <select value={form.country} onChange={set('country')} style={{ ...inputStyle }}>
@@ -191,7 +194,7 @@ export default function CreateProjectPage() {
                 onBlur={e  => (e.target.style.borderColor = 'var(--border)')} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16, marginBottom: 20 }}>
               <div>
                 <label style={labelStyle}>ROI estimé (%) *</label>
                 <input type="number" value={form.roi_estimated} onChange={set('roi_estimated')} placeholder="Ex : 18" style={inputStyle}
@@ -220,7 +223,7 @@ export default function CreateProjectPage() {
                 border: '1px solid var(--border)', marginBottom: 8,
               }}>
                 <div style={{ fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>Aperçu</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 12 }}>
                   {[
                     { label: 'Recherché', value: `${form.amount_needed}M ₣` },
                     { label: 'ROI estimé', value: `${form.roi_estimated}%` },
@@ -228,7 +231,7 @@ export default function CreateProjectPage() {
                   ].map(s => (
                     <div key={s.label}>
                       <div style={{ fontSize: 9, color: 'var(--text-muted)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{s.label}</div>
-                      <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 22, color: 'var(--gold-light)', marginTop: 3 }}>{s.value}</div>
+                      <div style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 22, color: 'var(--text)', marginTop: 3 }}>{s.value}</div>
                     </div>
                   ))}
                 </div>
