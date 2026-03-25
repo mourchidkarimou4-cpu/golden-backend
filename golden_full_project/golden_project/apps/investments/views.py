@@ -155,3 +155,25 @@ def user_ratings(request):
         'created_at': r.created_at,
     } for r in ratings]
     return Response(data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def investment_history(request, pk):
+    """Retourne l'historique des statuts d'un investissement."""
+    try:
+        inv = Investment.objects.get(pk=pk)
+        if inv.investor != request.user and inv.project.owner != request.user:
+            return Response({'error': 'Accès refusé.'}, status=http_status.HTTP_403_FORBIDDEN)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Investissement introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    from apps.core.models import StatusHistory
+    history = StatusHistory.objects.filter(investment=inv)
+    data = [{
+        'old_status': h.old_status,
+        'new_status': h.new_status,
+        'changed_at': h.changed_at,
+        'note': h.note,
+    } for h in history]
+    return Response(data)

@@ -4,3 +4,6 @@ class InvestmentsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.investments'
     verbose_name = 'Investments'
+
+    def ready(self):
+        import apps.investments.signals  # noqa

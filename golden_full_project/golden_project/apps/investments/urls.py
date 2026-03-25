@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     InvestmentListCreateView, InvestmentDetailView,
     PortfolioSummaryView, ProjectInvestmentsView,
-    rate_investment, user_ratings,
+    rate_investment, user_ratings, investment_history,
 )
 urlpatterns = [
     path('',                               InvestmentListCreateView.as_view(), name='investment-list-create'),
@@ -12,4 +12,5 @@ urlpatterns = [
     path('project/<uuid:project_id>/',     ProjectInvestmentsView.as_view(),   name='investment-by-project'),
     path('<uuid:pk>/rate/',                rate_investment,                    name='investment-rate'),
     path('my-ratings/',                    user_ratings,                       name='investment-ratings'),
+    path('<uuid:pk>/history/',             investment_history,                 name='investment-history'),
 ]
