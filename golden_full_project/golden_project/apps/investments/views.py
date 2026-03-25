@@ -103,3 +103,55 @@ class ProjectInvestmentsView(generics.ListAPIView):
             return Investment.objects.filter(project_id=project_id)
         # Le porteur voit les investissements sur ses propres projets
         return Investment.objects.filter(project_id=project_id, project__owner=user)
+
+
+# ── Rating Views ─────────────────────────────────────────────────────────────
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status as http_status
+from .models import InvestmentRating
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rate_investment(request, pk):
+    """Créer ou mettre à jour la notation d'un investissement."""
+    try:
+        from .models import Investment
+        inv = Investment.objects.get(pk=pk, investor=request.user)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Investissement introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    score = request.data.get('score')
+    if not score or not (1 <= int(score) <= 5):
+        return Response({'error': 'Score invalide (1-5).'}, status=http_status.HTTP_400_BAD_REQUEST)
+
+    rating, created = InvestmentRating.objects.update_or_create(
+        investment=inv,
+        defaults={
+            'investor': request.user,
+            'score': int(score),
+            'comment': request.data.get('comment', ''),
+        }
+    )
+    return Response({
+        'id': str(rating.id),
+        'score': rating.score,
+        'comment': rating.comment,
+        'created': created,
+    }, status=http_status.HTTP_201_CREATED if created else http_status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_ratings(request):
+    """Liste toutes les notations de l'utilisateur connecté."""
+    ratings = InvestmentRating.objects.filter(investor=request.user).select_related('investment')
+    data = [{
+        'id': str(r.id),
+        'investment_id': str(r.investment.id),
+        'project_title': r.investment.project.title if hasattr(r.investment, 'project') else '—',
+        'score': r.score,
+        'comment': r.comment,
+        'created_at': r.created_at,
+    } for r in ratings]
+    return Response(data)

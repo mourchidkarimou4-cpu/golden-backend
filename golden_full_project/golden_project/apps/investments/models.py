@@ -78,3 +78,21 @@ class Investment(TimeStampedModel):
     @property
     def net_amount(self):
         return float(self.amount) - self.commission_amount
+
+
+class InvestmentRating(models.Model):
+    """Notation d'un investissement par l'investisseur."""
+    id         = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    investment = models.OneToOneField('Investment', on_delete=models.CASCADE, related_name='rating')
+    investor   = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ratings')
+    score      = models.PositiveSmallIntegerField(help_text='Note de 1 à 5')
+    comment    = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Notation'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.investor} — {self.score}/5'

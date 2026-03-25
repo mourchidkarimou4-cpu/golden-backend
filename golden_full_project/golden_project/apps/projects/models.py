@@ -136,3 +136,26 @@ class ProjectFavorite(models.Model):
     class Meta:
         unique_together = ('investor', 'project')
         verbose_name = 'Favori'
+
+
+class ProjectShareToken(models.Model):
+    """Token sécurisé pour partager un projet publiquement (72h)."""
+    id         = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    project    = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='share_tokens')
+    token      = models.CharField(max_length=64, unique=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_active  = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Token de partage'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Share:{self.project.title} ({self.token[:8]}...)'
+
+    @property
+    def is_valid(self):
+        from django.utils import timezone
+        return self.is_active and self.expires_at > timezone.now()

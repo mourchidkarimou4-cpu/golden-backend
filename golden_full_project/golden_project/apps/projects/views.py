@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from django_filters.rest_framework import DjangoFilterBackend
 from django.utils import timezone
+from django.conf import settings
 
 from .models import Project, ProjectDocument, ProjectFavorite
 from .serializers import (
@@ -132,3 +133,65 @@ class ProjectFavoritesView(generics.ListAPIView):
         fav_ids = ProjectFavorite.objects.filter(
             investor=self.request.user).values_list('project_id', flat=True)
         return Project.objects.filter(id__in=fav_ids)
+
+
+# ── Share Token Views ────────────────────────────────────────────────────────
+import secrets
+from datetime import timedelta
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework import status as http_status
+from .models import ProjectShareToken
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_share_token(request, pk):
+    """Crée un token de partage valide 72h pour un projet."""
+    try:
+        project = Project.objects.get(pk=pk, owner=request.user)
+    except Project.DoesNotExist:
+        return Response({'error': 'Projet introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    token = secrets.token_urlsafe(32)
+    share = ProjectShareToken.objects.create(
+        project=project,
+        token=token,
+        created_by=request.user,
+        expires_at=timezone.now() + timedelta(hours=72),
+    )
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goldeninvest.netlify.app')
+    return Response({
+        'token': token,
+        'url': f'{frontend_url}/share/{token}',
+        'expires_at': share.expires_at,
+    })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def public_share_view(request, token):
+    """Vue publique d'un projet via token de partage."""
+    try:
+        share = ProjectShareToken.objects.select_related('project').get(token=token)
+    except ProjectShareToken.DoesNotExist:
+        return Response({'error': 'Lien invalide.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    if not share.is_valid:
+        return Response({'error': 'Ce lien a expiré.'}, status=http_status.HTTP_410_GONE)
+
+    p = share.project
+    return Response({
+        'id': str(p.id),
+        'title': p.title,
+        'tagline': p.tagline,
+        'description': p.description,
+        'sector': p.sector,
+        'country': p.country,
+        'city': p.city,
+        'amount_needed': str(p.amount_needed),
+        'roi_estimated': str(p.roi_estimated),
+        'duration_months': p.duration_months,
+        'funding_percentage': p.funding_percentage,
+        'risk_level': p.risk_level,
+        'expires_at': share.expires_at,
+    })

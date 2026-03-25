@@ -31,3 +31,11 @@ class ProjectAdmin(admin.ModelAdmin):
     def reject_projects(self, request, queryset):
         queryset.update(status='rejected', reviewed_by=request.user, reviewed_at=timezone.now())
         self.message_user(request, 'Projets rejetés.')
+
+from .models import ProjectShareToken
+
+@admin.register(ProjectShareToken)
+class ProjectShareTokenAdmin(admin.ModelAdmin):
+    list_display = ('project', 'created_by', 'created_at', 'expires_at', 'is_active')
+    list_filter  = ('is_active',)
+    readonly_fields = ('token', 'created_at')
