@@ -13,6 +13,7 @@ api_v1 = [
     path('messages/',    include('apps.messaging.urls')),
     path('investments/', include('apps.investments.urls')),
     path('reporting/',   include('apps.reporting.urls')),
+    path('core/',        include('apps.core.urls')),
 ]
 
 urlpatterns = [

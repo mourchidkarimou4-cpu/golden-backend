@@ -1,6 +1,8 @@
 // src/App.tsx
 import { useState, useCallback, useEffect } from 'react'
 import NotFoundPage from '@/pages/NotFoundPage'
+import SplashScreen from '@/components/ui/SplashScreen'
+
 import SharePage from '@/pages/SharePage'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from '@/lib/auth'
@@ -91,6 +93,12 @@ export default function App() {
     const saved = localStorage.getItem('golden_theme') ?? 'dark'
     document.documentElement.setAttribute('data-theme', saved)
   }, [])
+
+  const [splash, setSplash] = useState(() => !sessionStorage.getItem('splash_done'))
+
+  if (splash) return (
+    <SplashScreen onDone={() => { sessionStorage.setItem('splash_done', '1'); setSplash(false) }} />
+  )
 
   return (
     <AuthProvider>

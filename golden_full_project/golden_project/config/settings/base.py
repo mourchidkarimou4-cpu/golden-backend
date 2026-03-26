@@ -11,6 +11,7 @@ DEBUG         = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 DJANGO_APPS = [
+    'daphne',
     'django.contrib.admin','django.contrib.auth','django.contrib.contenttypes',
     'django.contrib.sessions','django.contrib.messages','django.contrib.staticfiles',
 ]
@@ -18,6 +19,7 @@ THIRD_PARTY_APPS = [
     'rest_framework','rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders','django_filters','drf_spectacular',
+    'channels',
 ]
 LOCAL_APPS = [
     'apps.core','apps.users','apps.projects','apps.matching',
@@ -150,4 +152,11 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
     'SWAGGER_UI_SETTINGS': {'persistAuthorization': True},
+}
+
+# ── Django Channels ────────────────────────────────────────────────────────
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.InMemoryChannelLayer',
+    }
 }

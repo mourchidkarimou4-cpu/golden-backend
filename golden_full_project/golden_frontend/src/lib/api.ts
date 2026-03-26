@@ -75,6 +75,12 @@ export const authAPI = {
     api.post('/users/me/change-password/', data),
 }
 
+export const notificationsAPI = {
+  list:       ()              => api.get('/core/notifications/'),
+  markRead:   (id: string)    => api.post(`/core/notifications/${id}/read/`),
+  markAllRead: ()             => api.post('/core/notifications/read-all/'),
+}
+
 export const projectsAPI = {
   list:      (params?: ProjectFilters) => api.get('/projects/', { params }),
   mine:      ()                        => api.get('/projects/mine/'),

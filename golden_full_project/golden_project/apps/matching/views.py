@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from apps.core.permissions import IsVerifiedInvestor
+from rest_framework.permissions import IsAuthenticated
 from apps.projects.serializers import ProjectListSerializer
 from .services import get_recommendations, compute_and_save_match
 from .models import Match

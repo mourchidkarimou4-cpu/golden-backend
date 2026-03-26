@@ -36,3 +36,29 @@ class StatusHistory(models.Model):
 
     def __str__(self):
         return f'{self.investment} : {self.old_status} → {self.new_status}'
+
+
+class Notification(models.Model):
+    """Notifications utilisateur."""
+    class Type(models.TextChoices):
+        INVESTMENT  = 'investment',  'Investissement'
+        MESSAGE     = 'message',     'Message'
+        PROJECT     = 'project',     'Projet'
+        KYC         = 'kyc',         'KYC'
+        SYSTEM      = 'system',      'Système'
+
+    id         = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
+    type       = models.CharField(max_length=20, choices=Type.choices)
+    title      = models.CharField(max_length=200)
+    message    = models.TextField(blank=True)
+    is_read    = models.BooleanField(default=False)
+    link       = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Notification'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user} — {self.title}'
