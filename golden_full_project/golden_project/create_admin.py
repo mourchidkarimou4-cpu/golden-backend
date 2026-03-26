@@ -5,7 +5,6 @@ django.setup()
 from apps.users.models import User
 if not User.objects.filter(email='admin@golden.com').exists():
     User.objects.create_superuser(
-        username='admin',
         email='admin@golden.com',
         password='Golden2026!'
     )
