@@ -79,6 +79,25 @@ export default function LandingPage() {
 
   return (
     <div style={{ background: 'var(--dark)', minHeight: '100vh' }}>
+      {/* ── Bandeau d'annonce ─────────────────────────────── */}
+      <div style={{
+        background: 'var(--gold)',
+        color: 'var(--dark)',
+        padding: '10px 24px',
+        textAlign: 'center',
+        fontSize: 12,
+        fontWeight: 500,
+        letterSpacing: '.04em',
+        lineHeight: 1.6,
+        position: 'relative',
+        zIndex: 110,
+      }}>
+        Nous disposons de plusieurs investisseurs prêts à vous confier de{' '}
+        <strong>100 000 €</strong> à <strong>345 000 000 €</strong> pour investir dans tout projet lucratif.{' '}
+        <a href="/register" style={{ color: 'var(--dark)', textDecoration: 'underline', fontWeight: 600 }}>
+          Rejoindre la plateforme →
+        </a>
+      </div>
 
       {/* ── Navbar ──────────────────────────────────── */}
       <nav ref={navRef} className="navbar" style={{
