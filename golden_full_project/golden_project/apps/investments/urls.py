@@ -4,7 +4,7 @@ from .views import (
     InvestmentListCreateView, InvestmentDetailView,
     PortfolioSummaryView, ProjectInvestmentsView,
     rate_investment, user_ratings, investment_history,
-    negotiation_offers, make_offer,
+    negotiation_offers, make_offer, generate_contract,
 )
 urlpatterns = [
     path('',                               InvestmentListCreateView.as_view(), name='investment-list-create'),
@@ -16,4 +16,5 @@ urlpatterns = [
     path('<uuid:pk>/history/',             investment_history,                 name='investment-history'),
     path('<uuid:pk>/offers/',              negotiation_offers,                 name='investment-offers'),
     path('<uuid:pk>/offer/',               make_offer,                         name='investment-make-offer'),
+    path('<uuid:pk>/contract/',            generate_contract,                  name='investment-contract'),
 ]

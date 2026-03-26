@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react'
 import { NAV_INVESTISSEUR, type NavItem } from '@/lib/navItems'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { GoldenSpinner, SectionLabel, StatusBadge } from '@/components/ui'
+import { toast } from '@/components/ui'
+import { Pencil, Check, X } from 'lucide-react'
 import { projectsAPI } from '@/lib/api'
 import { useIsMobile } from '@/hooks/useBreakpoint'
 
@@ -11,6 +13,8 @@ export default function FavorisPage() {
   const isMobile = useIsMobile()
   const [favorites, setFavorites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingNote, setEditingNote] = useState<string | null>(null)
+  const [noteText, setNoteText] = useState('')
 
   useEffect(() => {
     projectsAPI.favorites().then(({ data }) => {
@@ -21,6 +25,18 @@ export default function FavorisPage() {
   const handleRemoveFav = async (id: string) => {
     await projectsAPI.toggleFav(id)
     setFavorites(f => f.filter(p => p.id !== id))
+    toast.success('Retiré des favoris')
+  }
+
+  const handleSaveNote = async (id: string) => {
+    try {
+      await projectsAPI.updateFavoriteNote(id, noteText)
+      setFavorites(f => f.map(p => p.id === id ? { ...p, note: noteText } : p))
+      setEditingNote(null)
+      toast.success('Note enregistrée')
+    } catch {
+      toast.error('Erreur lors de la sauvegarde')
+    }
   }
 
   if (loading) return (

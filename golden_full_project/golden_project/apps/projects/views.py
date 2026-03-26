@@ -195,3 +195,17 @@ def public_share_view(request, token):
         'risk_level': p.risk_level,
         'expires_at': share.expires_at,
     })
+
+
+# ── Favorite Note View ────────────────────────────────────────────────────────
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_favorite_note(request, pk):
+    """Met à jour la note privée d'un favori."""
+    try:
+        fav = ProjectFavorite.objects.get(project_id=pk, investor=request.user)
+        fav.note = request.data.get('note', '')
+        fav.save()
+        return Response({'note': fav.note})
+    except ProjectFavorite.DoesNotExist:
+        return Response({'error': 'Favori introuvable.'}, status=404)

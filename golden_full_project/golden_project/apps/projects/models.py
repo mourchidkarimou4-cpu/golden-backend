@@ -131,7 +131,9 @@ class ProjectFavorite(models.Model):
     investor  = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
                                    related_name='favorites')
     project   = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='favorited_by')
+    note      = models.TextField(blank=True, verbose_name='Note privée')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('investor', 'project')

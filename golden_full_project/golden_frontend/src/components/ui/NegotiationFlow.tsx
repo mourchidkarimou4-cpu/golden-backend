@@ -70,14 +70,18 @@ export function NegotiationFlow({ investmentId, investorName, amount, status, cr
     }
   }
 
-  const handleDownload = () => {
-    const content = `CONTRAT D'INVESTISSEMENT GOLDEN\n\nInvestisseur : ${investorName ?? '—'}\nMontant : ${(amount/1_000_000).toFixed(1)}M FCFA\nStatut : ${status}\nDate : ${createdAt ? new Date(createdAt).toLocaleDateString('fr-FR') : '—'}`
-    const blob = new Blob([content], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = `contrat_${investmentId.slice(0,8)}.txt`; a.click()
-    URL.revokeObjectURL(url)
-    toast.success('Contrat téléchargé')
+  const handleDownload = async () => {
+    try {
+      const response = await investmentsAPI.getContract(investmentId)
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `contrat_${investmentId.slice(0,8)}.pdf`; a.click()
+      URL.revokeObjectURL(url)
+      toast.success('Contrat PDF téléchargé')
+    } catch {
+      toast.error('Erreur lors du téléchargement')
+    }
   }
 
   const inp: React.CSSProperties = {

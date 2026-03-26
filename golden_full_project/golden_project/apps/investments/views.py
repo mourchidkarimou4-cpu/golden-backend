@@ -246,3 +246,108 @@ def make_offer(request, pk):
         'offer_type': offer.offer_type,
         'created_at': offer.created_at,
     }, status=http_status.HTTP_201_CREATED)
+
+
+# ── Contract PDF View ─────────────────────────────────────────────────────────
+from django.http import HttpResponse
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def generate_contract(request, pk):
+    """Génère un PDF de contrat pour un investissement."""
+    try:
+        inv = Investment.objects.select_related('investor', 'project', 'project__owner').get(pk=pk)
+        if inv.investor != request.user and inv.project.owner != request.user:
+            return Response({'error': 'Accès refusé.'}, status=http_status.HTTP_403_FORBIDDEN)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Investissement introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import cm
+        from reportlab.lib import colors
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        import io
+        from django.utils import timezone
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=2*cm, bottomMargin=2*cm)
+        styles = getSampleStyleSheet()
+        story = []
+
+        title_style = ParagraphStyle('title', parent=styles['Title'], fontSize=20, textColor=colors.HexColor('#B87333'), alignment=TA_CENTER, spaceAfter=12)
+        heading_style = ParagraphStyle('heading', parent=styles['Heading2'], fontSize=13, textColor=colors.HexColor('#B87333'), spaceBefore=16, spaceAfter=8)
+        normal_style = ParagraphStyle('normal', parent=styles['Normal'], fontSize=11, leading=16)
+
+        story.append(Paragraph("GOLDEN INVESTISSEMENT", title_style))
+        story.append(Paragraph("CONTRAT D'INVESTISSEMENT", ParagraphStyle('sub', parent=styles['Normal'], fontSize=14, alignment=TA_CENTER, textColor=colors.HexColor('#666666'), spaceAfter=24)))
+        story.append(Spacer(1, 0.5*cm))
+
+        story.append(Paragraph("PARTIES", heading_style))
+        data = [
+            ['Investisseur', inv.investor.get_full_name() or inv.investor.email],
+            ['Porteur de projet', inv.project.owner.get_full_name() or inv.project.owner.email],
+            ['Projet', inv.project.title],
+            ['Date', timezone.now().strftime('%d/%m/%Y')],
+        ]
+        t = Table(data, colWidths=[5*cm, 11*cm])
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (0,-1), colors.HexColor('#F5F5F5')),
+            ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#B87333')),
+            ('FONTSIZE', (0,0), (-1,-1), 11),
+            ('PADDING', (0,0), (-1,-1), 8),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#DDDDDD')),
+        ]))
+        story.append(t)
+        story.append(Spacer(1, 0.5*cm))
+
+        story.append(Paragraph("CONDITIONS FINANCIÈRES", heading_style))
+        data2 = [
+            ['Montant investi', f"{float(inv.amount):,.0f} FCFA"],
+            ['ROI convenu', f"{float(inv.roi_agreed or 0):.1f}%"],
+            ['Durée', f"{inv.duration_months or 0} mois"],
+            ['Commission GOLDEN', f"{float(inv.commission_rate):.1f}% ({float(inv.commission_amount):,.0f} FCFA)"],
+            ['Montant net', f"{float(inv.net_amount):,.0f} FCFA"],
+            ['Statut', inv.get_status_display()],
+        ]
+        t2 = Table(data2, colWidths=[5*cm, 11*cm])
+        t2.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (0,-1), colors.HexColor('#F5F5F5')),
+            ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#B87333')),
+            ('FONTSIZE', (0,0), (-1,-1), 11),
+            ('PADDING', (0,0), (-1,-1), 8),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#DDDDDD')),
+        ]))
+        story.append(t2)
+        story.append(Spacer(1, 1*cm))
+
+        story.append(Paragraph("CLAUSES", heading_style))
+        story.append(Paragraph("1. Les parties s'engagent à respecter les conditions financières définies ci-dessus.", normal_style))
+        story.append(Paragraph("2. GOLDEN Investissement agit en qualité d'intermédiaire et perçoit une commission de mise en relation.", normal_style))
+        story.append(Paragraph("3. Tout litige sera soumis à la juridiction compétente du pays de résidence du porteur de projet.", normal_style))
+        story.append(Spacer(1, 2*cm))
+
+        story.append(Paragraph("SIGNATURES", heading_style))
+        sig_data = [['Investisseur', 'Porteur de projet'], ['\n\n_______________', '\n\n_______________']]
+        t3 = Table(sig_data, colWidths=[8*cm, 8*cm])
+        t3.setStyle(TableStyle([
+            ('FONTSIZE', (0,0), (-1,-1), 11),
+            ('PADDING', (0,0), (-1,-1), 8),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+        ]))
+        story.append(t3)
+
+        doc.build(story)
+        buffer.seek(0)
+        response = HttpResponse(buffer.read(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="contrat_{str(pk)[:8]}.pdf"'
+        return response
+
+    except ImportError:
+        # Fallback texte brut
+        content = f"CONTRAT D'INVESTISSEMENT GOLDEN\n\nInvestisseur: {inv.investor.email}\nProjet: {inv.project.title}\nMontant: {float(inv.amount):,.0f} FCFA\nROI: {float(inv.roi_agreed or 0):.1f}%\nDurée: {inv.duration_months or 0} mois\nStatut: {inv.get_status_display()}"
+        response = HttpResponse(content, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename="contrat_{str(pk)[:8]}.txt"'
+        return response
