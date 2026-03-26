@@ -135,6 +135,45 @@ body {
   .section-title em { font-style: italic; color: var(--gold-light); }
 
   /* KPI card */
+
+/* ── Typographie dashboards ───────────────────────────── */
+.page-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.section-heading {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text);
+}
+.label-caps {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.label-value {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+}
+
   .kpi-card {
     @apply p-6 border transition-all duration-300;
     background: var(--dark-3);
@@ -273,6 +312,45 @@ body {
   .dashboard-content { padding: 16px !important; }
 
   /* KPI cards */
+
+/* ── Typographie dashboards ───────────────────────────── */
+.page-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.section-heading {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text);
+}
+.label-caps {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.label-value {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+}
+
   .kpi-card { padding: 16px !important; }
 
   /* Tables scroll */
@@ -292,6 +370,45 @@ body {
 @media (max-width: 480px) {
   .grid-responsive-4 { grid-template-columns: 1fr !important; }
   .grid-responsive-3 { grid-template-columns: 1fr !important; }
+
+/* ── Typographie dashboards ───────────────────────────── */
+.page-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+.section-heading {
+  font-family: "DM Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--text);
+}
+.label-caps {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.label-value {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 24px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+}
+
   .kpi-card { padding: 14px !important; }
 }
 
