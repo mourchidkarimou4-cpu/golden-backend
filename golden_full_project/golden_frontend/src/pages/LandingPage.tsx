@@ -232,6 +232,19 @@ export default function LandingPage() {
             GOLDEN Investissement rapproche porteurs de projets ambitieux et investisseurs éclairés.
             Une plateforme sécurisée, transparente et pensée pour l'Afrique.
           </p>
+          <p style={{
+            fontSize: isMobile ? 12 : 14, lineHeight: 1.9, color: 'var(--text-muted)',
+            maxWidth: 480, marginBottom: isMobile ? 32 : 56,
+            animation: 'fadeUp .8s .25s ease both',
+            borderLeft: '2px solid var(--gold)',
+            paddingLeft: 16,
+            fontStyle: 'italic',
+            opacity: 0.85,
+          }}>
+            Si vos capitaux propres sont insuffisants pour démarrer ou reprendre votre projet d'entreprise,
+            vous pouvez les renforcer en faisant appel à des investisseurs extérieurs privés ou publics
+            contre une participation au capital de votre société.
+          </p>
           <div style={{
             display: 'flex', flexDirection: isMobile ? 'column' : 'row',
             gap: isMobile ? 12 : 24, alignItems: isMobile ? 'stretch' : 'center',
