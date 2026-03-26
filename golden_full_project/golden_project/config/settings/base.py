@@ -157,6 +157,6 @@ SPECTACULAR_SETTINGS = {
 # ── Django Channels ────────────────────────────────────────────────────────
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.InMemoryChannelLayer',
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     }
 }
