@@ -1,6 +1,7 @@
 // src/App.tsx
 import { useState, useCallback, useEffect } from 'react'
 import NotFoundPage from '@/pages/NotFoundPage'
+import AdminDashboard from '@/pages/AdminDashboard'
 import SplashScreen from '@/components/ui/SplashScreen'
 
 import SharePage from '@/pages/SharePage'
@@ -82,6 +83,7 @@ function AppRoutes() {
       <Route path="/investisseur/parametres"     element={<PrivateRoute role="investisseur"><ParametresPageInv /></PrivateRoute>} />
 
       <Route path="/share/:token" element={<SharePage />} />
+        <Route path="/admin-panel" element={<AdminDashboard />} />
         <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
