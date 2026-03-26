@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { NAV_INVESTISSEUR, type NavItem } from '@/lib/navItems'
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import { GoldenSpinner, SectionLabel, ProgressBar, SkeletonKpiGrid, EmptyState, RatingWidget, NegotiationFlow } from '@/components/ui'
+import { GoldenSpinner, SectionLabel, ProgressBar, SkeletonKpiGrid, EmptyState, RatingWidget, NegotiationFlow, LineChart } from '@/components/ui'
 import { TrendingUp } from 'lucide-react'
 import { investmentsAPI } from '@/lib/api'
 import { useIsMobile } from '@/hooks/useBreakpoint'
@@ -60,17 +60,8 @@ export default function PortfolioPage() {
         <div className="kpi-card" style={{ padding: 28 }}>
           <SectionLabel>Évolution du portfolio (6 mois)</SectionLabel>
 
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 160, marginTop: 24, marginBottom: 16 }}>
-            {investments.length > 0 && mockData.map((v, i) => (
-              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <div style={{
-                  width: '100%', height: `${(v/maxVal)*140}px`,
-                  background: 'linear-gradient(to top, rgba(201,168,76,0.8), rgba(201,168,76,0.2))',
-                  border: '1px solid rgba(201,168,76,0.4)',
-                }} />
-                <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{MONTHS[i]}</span>
-              </div>
-            ))}
+          <div style={{ marginTop: 24, marginBottom: 16 }}>
+            {investments.length > 0 && <LineChart labels={MONTHS} datasets={[{ label: 'Portfolio (M FCFA)', data: mockData, color: '#B87333' }]} height={160} />}
           </div>
 
           {/* Liste investissements */}
