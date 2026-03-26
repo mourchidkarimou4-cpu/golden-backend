@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-cd /opt/render/project/src/golden_full_project/golden_project
 python manage.py makemigrations --noinput
 python manage.py migrate contenttypes --noinput
 python manage.py migrate auth --noinput
