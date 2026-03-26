@@ -100,6 +100,10 @@ export const projectsAPI = {
   }),
 }
 
+export const analyticsAPI = {
+  get: () => api.get('/reporting/analytics/'),
+}
+
 export const matchingAPI = {
   recommendations: () => api.get('/matching/recommendations/'),
   dismiss: (projectId: string) => api.post(`/matching/dismiss/${projectId}/`),

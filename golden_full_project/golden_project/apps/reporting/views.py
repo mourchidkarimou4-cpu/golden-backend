@@ -188,3 +188,77 @@ class DashboardAdminView(APIView):
                 'pending_projects': pending_projects,
             }
         })
+
+
+class AnalyticsView(APIView):
+    """
+    GET /api/v1/reporting/analytics/
+    Données analytiques avancées.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from django.db.models import Avg
+        user = request.user
+
+        if user.role == 'porteur':
+            projects = Project.objects.filter(owner=user)
+            # ROI par secteur
+            roi_by_sector = list(projects.values('sector').annotate(
+                avg_roi=Avg('roi_estimated'),
+                count=Count('id')
+            ).order_by('-avg_roi'))
+
+            # Financement par mois (6 derniers mois)
+            from django.utils import timezone
+            from datetime import timedelta
+            months_data = []
+            for i in range(5, -1, -1):
+                start = timezone.now().replace(day=1) - timedelta(days=30*i)
+                end = start + timedelta(days=30)
+                raised = Investment.objects.filter(
+                    project__owner=user,
+                    created_at__gte=start,
+                    created_at__lt=end,
+                    status__in=['paid', 'active', 'completed']
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                months_data.append({
+                    'month': start.strftime('%b'),
+                    'amount': float(raised) / 1_000_000,
+                })
+
+            return Response({
+                'roi_by_sector': roi_by_sector,
+                'monthly_funding': months_data,
+            })
+
+        elif user.role == 'investisseur':
+            investments = Investment.objects.filter(investor=user)
+            # ROI par secteur
+            roi_by_sector = list(investments.values('project__sector').annotate(
+                avg_roi=Avg('roi_agreed'),
+                total=Sum('amount'),
+                count=Count('id')
+            ).order_by('-avg_roi'))
+
+            # Évolution portfolio
+            from django.utils import timezone
+            from datetime import timedelta
+            months_data = []
+            for i in range(5, -1, -1):
+                start = timezone.now().replace(day=1) - timedelta(days=30*i)
+                end = start + timedelta(days=30)
+                total = investments.filter(
+                    created_at__lt=end
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                months_data.append({
+                    'month': start.strftime('%b'),
+                    'amount': float(total) / 1_000_000,
+                })
+
+            return Response({
+                'roi_by_sector': roi_by_sector,
+                'monthly_portfolio': months_data,
+            })
+
+        return Response({})

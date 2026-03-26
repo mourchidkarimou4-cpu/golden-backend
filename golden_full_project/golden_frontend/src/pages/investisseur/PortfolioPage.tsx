@@ -4,7 +4,7 @@ import { NAV_INVESTISSEUR, type NavItem } from '@/lib/navItems'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { GoldenSpinner, SectionLabel, ProgressBar, SkeletonKpiGrid, EmptyState, RatingWidget, NegotiationFlow, LineChart } from '@/components/ui'
 import { TrendingUp } from 'lucide-react'
-import { investmentsAPI } from '@/lib/api'
+import { investmentsAPI, analyticsAPI } from '@/lib/api'
 import { useIsMobile } from '@/hooks/useBreakpoint'
 
 
@@ -13,12 +13,15 @@ export default function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<any>(null)
   const [investments, setInvestments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [analytics, setAnalytics] = useState<any>(null)
 
   useEffect(() => {
     Promise.all([
       investmentsAPI.portfolio(),
       investmentsAPI.list(),
-    ]).then(([port, inv]) => {
+      analyticsAPI.get(),
+    ]).then(([port, inv, ana]) => {
+      setAnalytics(ana.data)
       setPortfolio(port.data)
       setInvestments(inv.data.results ?? inv.data ?? [])
     }).finally(() => setLoading(false))
@@ -33,9 +36,8 @@ export default function PortfolioPage() {
   const totalInvested = investments.reduce((s, i) => s + (i.amount ?? 0), 0)
   const totalReturn   = investments.reduce((s, i) => s + ((i.amount ?? 0) * (i.roi_agreed ?? 0) / 100), 0)
 
-  const MONTHS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun']
-  const mockData = [5, 12, 8, 20, 15, 25]
-  const maxVal = Math.max(...mockData)
+  const MONTHS = (analytics?.monthly_portfolio ?? []).map((m: any) => m.month)
+  const mockData = (analytics?.monthly_portfolio ?? []).map((m: any) => m.amount)
 
   return (
     <DashboardLayout navItems={NAV_INVESTISSEUR} title="Portfolio" subtitle="Suivi de vos investissements">

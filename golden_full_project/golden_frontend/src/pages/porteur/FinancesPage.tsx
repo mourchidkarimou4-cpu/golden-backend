@@ -5,7 +5,7 @@ import { useIsMobile } from '@/hooks/useBreakpoint'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { GoldenSpinner, SectionLabel, ProgressBar, SkeletonKpiGrid, EmptyState, NegotiationFlow, BarChart } from '@/components/ui'
 import { DollarSign } from 'lucide-react'
-import { reportingAPI, investmentsAPI } from '@/lib/api'
+import { reportingAPI, investmentsAPI, analyticsAPI } from '@/lib/api'
 
 
 export default function FinancesPage() {
@@ -13,12 +13,15 @@ export default function FinancesPage() {
   const [dashboard, setDashboard] = useState<any>(null)
   const [investments, setInvestments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [analytics, setAnalytics] = useState<any>(null)
 
   useEffect(() => {
     Promise.all([
       reportingAPI.dashboardPorteur(),
       investmentsAPI.list(),
-    ]).then(([dash, inv]) => {
+      analyticsAPI.get(),
+    ]).then(([dash, inv, ana]) => {
+      setAnalytics(ana.data)
       setDashboard(dash.data)
       setInvestments(inv.data.results ?? inv.data ?? [])
     }).finally(() => setLoading(false))
@@ -35,9 +38,8 @@ export default function FinancesPage() {
   const totalRaised = investments.reduce((s, i) => s + (i.amount ?? 0), 0)
   const amountNeeded = mainProject?.amount_needed ?? 0
   const pct = amountNeeded > 0 ? Math.min(100, Math.round((totalRaised / amountNeeded) * 100)) : 0
-  const MONTHS = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun']
-  const mockData = [8, 14, 10, 22, 18, 28]
-  const maxVal = Math.max(...mockData)
+  const MONTHS = (analytics?.monthly_funding ?? []).map((m: any) => m.month)
+  const mockData = (analytics?.monthly_funding ?? []).map((m: any) => m.amount)
 
   return (
     <DashboardLayout navItems={NAV_PORTEUR} title="Finances" subtitle="Suivi financier de votre projet">
