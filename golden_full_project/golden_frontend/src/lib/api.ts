@@ -100,6 +100,11 @@ export const projectsAPI = {
   }),
 }
 
+export const paymentAPI = {
+  init:   (id: string) => api.post(`/investments/${id}/payment/init/`),
+  check:  (id: string) => api.get(`/investments/${id}/payment/check/`),
+}
+
 export const analyticsAPI = {
   get: () => api.get('/reporting/analytics/'),
 }

@@ -5,6 +5,8 @@ from .views import (
     PortfolioSummaryView, ProjectInvestmentsView,
     rate_investment, user_ratings, investment_history,
     negotiation_offers, make_offer, generate_contract,
+    initiate_payment, payment_notify, check_payment,
+    initiate_payment, payment_notify, check_payment,
 )
 urlpatterns = [
     path('',                               InvestmentListCreateView.as_view(), name='investment-list-create'),
@@ -17,4 +19,10 @@ urlpatterns = [
     path('<uuid:pk>/offers/',              negotiation_offers,                 name='investment-offers'),
     path('<uuid:pk>/offer/',               make_offer,                         name='investment-make-offer'),
     path('<uuid:pk>/contract/',            generate_contract,                  name='investment-contract'),
+    path('<uuid:pk>/payment/init/',        initiate_payment,                   name='investment-payment-init'),
+    path('<uuid:pk>/payment/notify/',      payment_notify,                     name='investment-payment-notify'),
+    path('<uuid:pk>/payment/check/',       check_payment,                      name='investment-payment-check'),
+    path('<uuid:pk>/payment/init/',        initiate_payment,                   name='investment-payment-init'),
+    path('<uuid:pk>/payment/notify/',      payment_notify,                     name='investment-payment-notify'),
+    path('<uuid:pk>/payment/check/',       check_payment,                      name='investment-payment-check'),
 ]

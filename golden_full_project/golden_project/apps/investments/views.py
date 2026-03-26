@@ -351,3 +351,86 @@ def generate_contract(request, pk):
         response = HttpResponse(content, content_type='text/plain')
         response['Content-Disposition'] = f'attachment; filename="contrat_{str(pk)[:8]}.txt"'
         return response
+
+
+# ── CinetPay Payment Views ────────────────────────────────────────────────────
+from .cinetpay import init_payment, verify_payment
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def initiate_payment(request, pk):
+    """Initialise un paiement CinetPay pour un investissement."""
+    try:
+        inv = Investment.objects.get(pk=pk, investor=request.user)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Investissement introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    if inv.status not in ['negotiation', 'contract_sent', 'signed']:
+        return Response({'error': 'Statut invalide pour paiement.'}, status=http_status.HTTP_400_BAD_REQUEST)
+
+    frontend_url = getattr(settings, 'FRONTEND_URL', 'https://goldeninvest.netlify.app')
+    backend_url  = getattr(settings, 'BACKEND_URL', 'https://golden-backend-vaaq.onrender.com')
+
+    result = init_payment(
+        inv,
+        return_url  = f"{frontend_url}/investisseur/portfolio?payment=success",
+        notify_url  = f"{backend_url}/api/v1/investments/{pk}/payment/notify/",
+    )
+
+    if 'error' in result:
+        return Response({'error': result['error']}, status=http_status.HTTP_502_BAD_GATEWAY)
+
+    # Sauvegarder le transaction_id
+    inv.payment_ref = result['transaction_id']
+    inv.save(update_fields=['payment_ref'])
+
+    return Response(result)
+
+
+@api_view(['POST'])
+def payment_notify(request, pk):
+    """Webhook CinetPay — notification de paiement."""
+    try:
+        inv = Investment.objects.get(pk=pk)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    transaction_id = request.data.get('cpm_trans_id') or inv.payment_ref
+    if not transaction_id:
+        return Response({'error': 'Transaction ID manquant.'}, status=http_status.HTTP_400_BAD_REQUEST)
+
+    result = verify_payment(transaction_id)
+    status_code = result.get('data', {}).get('status', '')
+
+    if status_code == 'ACCEPTED':
+        from django.utils import timezone
+        inv.status   = 'paid'
+        inv.paid_at  = timezone.now()
+        inv.save(update_fields=['status', 'paid_at'])
+        # Notifier le porteur
+        from apps.core.models import Notification
+        Notification.objects.create(
+            user    = inv.project.owner,
+            type    = 'investment',
+            title   = f'Paiement reçu — {inv.project.title}',
+            message = f'{inv.investor.get_full_name() or inv.investor.email} a effectué un paiement de {float(inv.amount):,.0f} FCFA.',
+            link    = '/porteur/finances',
+        )
+
+    return Response({'status': 'ok'})
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_payment(request, pk):
+    """Vérifie le statut d'un paiement."""
+    try:
+        inv = Investment.objects.get(pk=pk, investor=request.user)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Investissement introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    if not inv.payment_ref:
+        return Response({'status': 'no_payment'})
+
+    result = verify_payment(inv.payment_ref)
+    return Response(result)
