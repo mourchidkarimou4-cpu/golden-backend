@@ -14,8 +14,11 @@ export default function ProjetsPage() {
   const isMobile = useIsMobile()
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [sector, setSector] = useState('Tous')
-  const [search, setSearch] = useState('')
+  const [sector, setSector]   = useState('Tous')
+  const [search, setSearch]   = useState('')
+  const [minRoi, setMinRoi]   = useState(0)
+  const [maxAmount, setMaxAmount] = useState(1000)
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   useEffect(() => {
     projectsAPI.list?.({ status: 'published' })
@@ -27,7 +30,9 @@ export default function ProjetsPage() {
   const filtered = projects.filter(p => {
     const matchSector = sector === 'Tous' || p.sector === sector
     const matchSearch = !search || p.title?.toLowerCase().includes(search.toLowerCase())
-    return matchSector && matchSearch
+    const matchRoi = (p.expected_roi ?? p.roi_estimated ?? 0) >= minRoi
+    const matchAmount = (parseFloat(String(p.funding_goal ?? p.amount_needed ?? 0))/1_000_000) <= maxAmount
+    return matchSector && matchSearch && matchRoi && matchAmount
   })
 
   return (

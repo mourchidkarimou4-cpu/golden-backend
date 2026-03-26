@@ -97,20 +97,31 @@ def compute_and_save_match(investor, project) -> Match:
     return match
 
 
-def get_recommendations(investor, limit=10):
+def get_recommendations(investor, limit=10, refresh=False):
     """
-    Retourne les projets actifs recommandés pour un investisseur,
-    triés par score décroissant.
+    Retourne les projets actifs recommandés pour un investisseur.
+    Lit depuis la table Match (cache) sauf si refresh=True ou si vide.
     """
     from apps.projects.models import Project
 
+    cached = Match.objects.filter(
+        investor=investor, is_dismissed=False
+    ).select_related('project').order_by('-score')[:limit]
+
+    if cached.exists() and not refresh:
+        return [{'project': m.project, 'score': m.score, 'criteria': m.criteria} for m in cached]
+
+    # Recalcul complet
     active_projects = Project.objects.filter(status='active').exclude(
         matches__investor=investor, matches__is_dismissed=True
     )
-
     results = []
     for project in active_projects:
         score, criteria = compute_score(investor, project)
+        Match.objects.update_or_create(
+            investor=investor, project=project,
+            defaults={'score': score, 'criteria': criteria}
+        )
         results.append({'project': project, 'score': score, 'criteria': criteria})
 
     results.sort(key=lambda x: x['score'], reverse=True)

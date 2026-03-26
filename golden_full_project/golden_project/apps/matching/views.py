@@ -20,7 +20,8 @@ class RecommendationsView(APIView):
     permission_classes = [IsVerifiedInvestor]
 
     def get(self, request):
-        results = get_recommendations(request.user, limit=10)
+        refresh = request.query_params.get('refresh') == '1'
+        results = get_recommendations(request.user, limit=10, refresh=refresh)
         data = []
         for item in results:
             project_data = ProjectListSerializer(
