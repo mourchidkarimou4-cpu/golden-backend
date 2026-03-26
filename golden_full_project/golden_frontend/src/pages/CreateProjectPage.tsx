@@ -1,5 +1,7 @@
 // src/pages/CreateProjectPage.tsx
 import { useState } from 'react'
+import DashboardLayout from '@/components/layout/DashboardLayout'
+import { NAV_PORTEUR } from '@/lib/navItems'
 import { Check, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useIsMobile } from '@/hooks/useBreakpoint'
@@ -27,6 +29,8 @@ const STEPS = ['Informations générales', 'Finances', 'Récapitulatif']
 
 export default function CreateProjectPage() {
   const navigate = useNavigate()
+  const [created, setCreated] = useState<{id: string, title: string} | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const isMobile = useIsMobile()
   const [step,    setStep]    = useState(0)
   const [loading, setLoading] = useState(false)
@@ -63,13 +67,87 @@ export default function CreateProjectPage() {
         duration_months: parseInt(form.duration_months),
         min_investment:  form.min_investment ? parseFloat(form.min_investment) * 1_000_000 : undefined,
       })
-      navigate('/porteur')
+      setCreated({ id: data.id, title: data.title })
     } catch (err: any) {
       const d = err.response?.data; setError(typeof d?.detail === 'string' ? d.detail : d?.error ?? JSON.stringify(d) ?? 'Erreur lors de la création.')
     } finally {
       setLoading(false)
     }
   }
+
+  const handleSubmitNow = async () => {
+    if (!created) return
+    setSubmitting(true)
+    try {
+      await projectsAPI.submit(created.id)
+      navigate('/porteur/projet')
+    } catch {
+      navigate('/porteur/projet')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Écran de succès
+  if (created) return (
+    <DashboardLayout navItems={NAV_PORTEUR} title="Projet créé">
+      <div style={{
+        maxWidth: 520, margin: '60px auto', textAlign: 'center', padding: '0 24px',
+      }}>
+        <div style={{
+          width: 64, height: 64, border: '1px solid #4ade80',
+          display: 'grid', placeItems: 'center', margin: '0 auto 28px',
+          color: '#4ade80',
+        }}>
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <h1 style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: 28, fontWeight: 300, marginBottom: 12 }}>
+          Projet créé avec succès
+        </h1>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 8 }}>
+          <strong style={{ color: 'var(--text)' }}>"{created.title}"</strong> a été enregistré en brouillon.
+        </p>
+        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 40, lineHeight: 1.7 }}>
+          Vous pouvez le soumettre à validation maintenant ou le retrouver dans "Mon projet".
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button
+            onClick={handleSubmitNow}
+            disabled={submitting}
+            style={{
+              padding: '14px', background: 'var(--gold)', color: 'var(--dark)',
+              border: 'none', fontSize: 12, letterSpacing: '.1em',
+              textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            {submitting ? 'Soumission...' : 'Soumettre à validation →'}
+          </button>
+          <button
+            onClick={() => navigate(`/porteur/projet`)}
+            style={{
+              padding: '14px', background: 'transparent',
+              border: '1px solid var(--border-bright)', color: 'var(--text-muted)',
+              fontSize: 12, letterSpacing: '.1em',
+              textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit',
+            }}
+          >
+            Voir mon projet
+          </button>
+          <button
+            onClick={() => navigate('/porteur')}
+            style={{
+              padding: '10px', background: 'none', border: 'none',
+              color: 'var(--text-dim)', fontSize: 12, cursor: 'pointer',
+            }}
+          >
+            Retour au tableau de bord
+          </button>
+        </div>
+      </div>
+    </DashboardLayout>
+  )
 
   const inputStyle: React.CSSProperties = {
     width: '100%', padding: '12px 14px',
