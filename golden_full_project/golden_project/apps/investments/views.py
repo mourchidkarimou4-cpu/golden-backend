@@ -177,3 +177,72 @@ def investment_history(request, pk):
         'note': h.note,
     } for h in history]
     return Response(data)
+
+
+# ── Negotiation Flow Views ────────────────────────────────────────────────────
+from .models import NegotiationOffer
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def negotiation_offers(request, pk):
+    """Liste les offres d'un investissement."""
+    try:
+        inv = Investment.objects.get(pk=pk)
+        if inv.investor != request.user and inv.project.owner != request.user:
+            return Response({'error': 'Accès refusé.'}, status=http_status.HTTP_403_FORBIDDEN)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Investissement introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    offers = NegotiationOffer.objects.filter(investment=inv)
+    data = [{
+        'id': str(o.id),
+        'offer_type': o.offer_type,
+        'made_by': str(o.made_by.id),
+        'made_by_name': o.made_by.full_name or o.made_by.email,
+        'amount': str(o.amount) if o.amount else None,
+        'roi': str(o.roi) if o.roi else None,
+        'duration': o.duration,
+        'message': o.message,
+        'created_at': o.created_at,
+    } for o in offers]
+    return Response(data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def make_offer(request, pk):
+    """Faire une offre ou contre-offre."""
+    try:
+        inv = Investment.objects.get(pk=pk)
+        if inv.investor != request.user and inv.project.owner != request.user:
+            return Response({'error': 'Accès refusé.'}, status=http_status.HTTP_403_FORBIDDEN)
+    except Investment.DoesNotExist:
+        return Response({'error': 'Investissement introuvable.'}, status=http_status.HTTP_404_NOT_FOUND)
+
+    offer_type = request.data.get('offer_type', 'counter')
+    offer = NegotiationOffer.objects.create(
+        investment=inv,
+        made_by=request.user,
+        offer_type=offer_type,
+        amount=request.data.get('amount'),
+        roi=request.data.get('roi'),
+        duration=request.data.get('duration'),
+        message=request.data.get('message', ''),
+    )
+
+    # Mettre à jour le statut de l'investissement
+    if offer_type == 'accepted':
+        inv.status = 'contract_sent'
+        inv.roi_agreed = offer.roi or inv.roi_agreed
+        inv.amount = offer.amount or inv.amount
+        inv.duration_months = offer.duration or inv.duration_months
+        inv.save()
+    elif offer_type == 'rejected':
+        inv.status = 'cancelled'
+        inv.save()
+
+    return Response({
+        'id': str(offer.id),
+        'offer_type': offer.offer_type,
+        'created_at': offer.created_at,
+    }, status=http_status.HTTP_201_CREATED)

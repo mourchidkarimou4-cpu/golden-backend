@@ -96,3 +96,29 @@ class InvestmentRating(models.Model):
 
     def __str__(self):
         return f'{self.investor} — {self.score}/5'
+
+
+class NegotiationOffer(models.Model):
+    """Contre-offre dans le flux de négociation."""
+    class OfferType(models.TextChoices):
+        INITIAL      = 'initial',      'Proposition initiale'
+        COUNTER      = 'counter',      'Contre-offre'
+        ACCEPTED     = 'accepted',     'Acceptée'
+        REJECTED     = 'rejected',     'Rejetée'
+
+    id         = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    investment = models.ForeignKey('Investment', on_delete=models.CASCADE, related_name='offers')
+    made_by    = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    offer_type = models.CharField(max_length=20, choices=OfferType.choices)
+    amount     = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    roi        = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    duration   = models.PositiveIntegerField(null=True, blank=True)
+    message    = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Offre de négociation'
+
+    def __str__(self):
+        return f'{self.investment} — {self.offer_type}'
