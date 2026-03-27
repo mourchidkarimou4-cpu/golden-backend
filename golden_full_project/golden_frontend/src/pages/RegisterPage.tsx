@@ -144,8 +144,8 @@ export default function RegisterPage() {
                 <label style={lbl}>Je suis</label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                   {[
-                    { val: 'porteur', label: '💡 Porteur de projet' },
-                    { val: 'investisseur', label: '💰 Investisseur' },
+                    { val: 'porteur', label: 'Porteur de projet' },
+                    { val: 'investisseur', label: 'Investisseur' },
                   ].map(r => (
                     <div key={r.val} onClick={() => setForm(f => ({ ...f, role: r.val as 'porteur' | 'investisseur' }))} style={{
                       padding: '12px 14px', cursor: 'pointer',
