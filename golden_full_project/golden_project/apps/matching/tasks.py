@@ -1,30 +1,40 @@
-"""
-apps/matching/tasks.py
-Tâches Celery pour le recalcul des scores de matching.
-"""
-from config.celery import app
+"""apps/matching/tasks.py"""
+import threading
+import logging
+
+logger = logging.getLogger(__name__)
 
 
-@app.task(bind=True, max_retries=3)
-def recompute_matches_for_project_task(self, project_id):
-    """Recalcule tous les scores pour un projet donné."""
+def _run_in_thread(target, *args):
+    threading.Thread(target=target, args=args, daemon=True).start()
+
+
+def _recompute_project(project_id):
     try:
         from apps.projects.models import Project
         from .services import recompute_all_matches_for_project
         project = Project.objects.get(id=project_id)
         recompute_all_matches_for_project(project)
-    except Exception as exc:
-        raise self.retry(exc=exc, countdown=60)
+        logger.info(f'Matching recalculé pour projet {project_id}')
+    except Exception as e:
+        logger.error(f'Erreur recalcul matching projet {project_id}: {e}')
 
 
-@app.task(bind=True, max_retries=3)
-def recompute_matches_for_investor_task(self, investor_id):
-    """Recalcule tous les scores pour un investisseur donné."""
+def _recompute_investor(investor_id):
     try:
         from django.contrib.auth import get_user_model
         from .services import recompute_all_matches_for_investor
         User = get_user_model()
         investor = User.objects.get(id=investor_id)
         recompute_all_matches_for_investor(investor)
-    except Exception as exc:
-        raise self.retry(exc=exc, countdown=60)
+        logger.info(f'Matching recalculé pour investisseur {investor_id}')
+    except Exception as e:
+        logger.error(f'Erreur recalcul matching investisseur {investor_id}: {e}')
+
+
+def recompute_matches_for_project_task(project_id):
+    _run_in_thread(_recompute_project, project_id)
+
+
+def recompute_matches_for_investor_task(investor_id):
+    _run_in_thread(_recompute_investor, investor_id)
